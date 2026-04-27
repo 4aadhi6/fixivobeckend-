@@ -93,7 +93,7 @@ console.log("🔥 Firebase initialized from ENV");
 }
 *//* ================= FIREBASE ADMIN (FINAL FIX) ================= */
 
-let firestore!: admin.firestore.Firestore;
+/*let firestore!: admin.firestore.Firestore;
 
 try {
   if (!admin.apps.length) {
@@ -118,7 +118,44 @@ try {
 } catch (error: any) {
   console.error("❌ Firebase error:", error.message);
   console.error("⚠️ Server will continue running without Firebase");
+}*//* ================= FIREBASE ADMIN (FINAL FIX) ================= */
+
+let firestore;
+
+try {
+  if (!admin.apps.length) {
+    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+      throw new Error("FIREBASE_SERVICE_ACCOUNT missing");
+    }
+
+    // Parse JSON from ENV
+    const serviceAccount = JSON.parse(
+      process.env.FIREBASE_SERVICE_ACCOUNT
+    );
+
+    // 🔥 VERY IMPORTANT FIX (newline issue)
+    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
+
+    // Initialize Firebase
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+
+    console.log("🔥 Firebase initialized from ENV");
+  }
+
+  firestore = admin.firestore();
+
+  console.log("✅ Firestore initialized:", !!firestore);
+
+} catch (error) {
+  console.error("❌ Firebase error:", error.message);
+
+  // 🚨 STOP SERVER (important)
+  process.exit(1);
 }
+
+/* ================= FIREBASE ADMIN END ================= */
 /* ================= RAZORPAY ================= */
 
 let razorpay: Razorpay | null = null;

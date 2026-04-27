@@ -82,12 +82,7 @@ admin.initializeApp({
 
 console.log("🔥 Firebase initialized from ENV");
 
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-
-    console.log("🔥 Firebase using JSON file");
-  }
+ 
 
   firestore = admin.firestore();
   console.log("✅ Firestore initialized");

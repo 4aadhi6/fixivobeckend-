@@ -80,7 +80,8 @@ try {
   console.log("✅ Firestore initialized");
 } catch (error: any) {
   console.error("❌ Firebase error:", error.message);
-  process.exit(1);
+  // process.exit(1);
+  console.error("⚠️ Server will continue running without Firebase");
 }
 
 /* ================= RAZORPAY ================= */
@@ -780,9 +781,14 @@ app.options("*", cors());
   //   app.get("*", (_, res) => res.sendFile(path.join(dist, "index.html")));
   // }
 
-  httpServer.listen(3000, () => {
-    console.log("🚀 Server running on :localhost000");
-  });
+  // httpServer.listen(3000, () => {
+  //   console.log("🚀 Server running on :localhost000");
+  // });
+  const PORT = process.env.PORT || 3000;
+
+httpServer.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
 }
 
 startServer();

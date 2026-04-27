@@ -1,35 +1,35 @@
-// // Add this BEFORE anything else
-// import dotenv from "dotenv";
-// import path from "path";
-// import fs from "fs";
-// import { fileURLToPath } from "url";
+// Add this BEFORE anything else
+import dotenv from "dotenv";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// // Extremely robust env loading
-// try {
-//   const envPath = path.resolve(__dirname, ".env");
-//   if (fs.existsSync(envPath)) {
-//     const result = dotenv.config({ path: envPath });
-//     if (result.error) {
-//       console.error("❌ Dotenv Error:", result.error);
-//     } else {
-//       console.log("✅ .env loaded successfully from", envPath);
-//     }
-//   } else {
-//     // Fallback to root just in case
-//     const rootEnv = path.resolve(process.cwd(), ".env");
-//     if (fs.existsSync(rootEnv)) {
-//       dotenv.config({ path: rootEnv });
-//       console.log("✅ .env loaded from root");
-//     } else {
-//       console.warn("⚠️ .env file not found");
-//     }
-//   }
-// } catch (e: any) {
-//   console.error("❌ Fatal Env Load Error:", e.message);
-// }
+// Extremely robust env loading
+try {
+  const envPath = path.resolve(__dirname, ".env");
+  if (fs.existsSync(envPath)) {
+    const result = dotenv.config({ path: envPath });
+    if (result.error) {
+      console.error("❌ Dotenv Error:", result.error);
+    } else {
+      console.log("✅ .env loaded successfully from", envPath);
+    }
+  } else {
+    // Fallback to root just in case
+    const rootEnv = path.resolve(process.cwd(), ".env");
+    if (fs.existsSync(rootEnv)) {
+      dotenv.config({ path: rootEnv });
+      console.log("✅ .env loaded from root");
+    } else {
+      console.warn("⚠️ .env file not found");
+    }
+  }
+} catch (e: any) {
+  console.error("❌ Fatal Env Load Error:", e.message);
+}
 
 import express from "express";
 //import { createServer as createViteServer } from "vite";
@@ -120,41 +120,73 @@ try {
   console.error("⚠️ Server will continue running without Firebase");
 }*//* ================= FIREBASE ADMIN (FINAL FIX) ================= */
 
-let firestore;
+// let firestore;
+
+// try {
+//   if (!admin.apps.length) {
+//     if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+//       throw new Error("FIREBASE_SERVICE_ACCOUNT missing");
+//     }
+
+//     // Parse JSON from ENV
+//     const serviceAccount = JSON.parse(
+//       process.env.FIREBASE_SERVICE_ACCOUNT
+//     );
+
+//     // 🔥 VERY IMPORTANT FIX (newline issue)
+//     serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
+
+//     // Initialize Firebase
+//     admin.initializeApp({
+//       credential: admin.credential.cert(serviceAccount),
+//     });
+
+//     console.log("🔥 Firebase initialized from ENV");
+//   }
+
+//   firestore = admin.firestore();
+
+//   console.log("✅ Firestore initialized:", !!firestore);
+
+// } catch (error) {
+//   console.error("❌ Firebase error:", error.message);
+
+//   // 🚨 STOP SERVER (important)
+//   process.exit(1);
+// }
+import admin from "firebase-admin";
+
+// ================= FIREBASE INIT =================
+
+let firestore: admin.firestore.Firestore;
 
 try {
   if (!admin.apps.length) {
-    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-      throw new Error("FIREBASE_SERVICE_ACCOUNT missing");
-    }
 
-    // Parse JSON from ENV
+    // 🔥 PUT YOUR SERVICE ACCOUNT JSON IN ENV OR DIRECT OBJECT
     const serviceAccount = JSON.parse(
-      process.env.FIREBASE_SERVICE_ACCOUNT
+      process.env.FIREBASE_SERVICE_ACCOUNT as string
     );
 
-    // 🔥 VERY IMPORTANT FIX (newline issue)
-    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
+    // ✅ FIX: important for private key formatting
+    if (serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
+    }
 
-    // Initialize Firebase
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
 
-    console.log("🔥 Firebase initialized from ENV");
+    console.log("🔥 Firebase Admin Initialized");
   }
 
   firestore = admin.firestore();
+  console.log("✅ Firestore Connected");
 
-  console.log("✅ Firestore initialized:", !!firestore);
-
-} catch (error) {
-  console.error("❌ Firebase error:", error.message);
-
-  // 🚨 STOP SERVER (important)
+} catch (error: any) {
+  console.error("❌ Firebase Init Error:", error.message);
   process.exit(1);
 }
-
 /* ================= FIREBASE ADMIN END ================= */
 /* ================= RAZORPAY ================= */
 

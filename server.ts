@@ -1,35 +1,35 @@
-// Add this BEFORE anything else
-import dotenv from "dotenv";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
+// // Add this BEFORE anything else
+// import dotenv from "dotenv";
+// import path from "path";
+// import fs from "fs";
+// import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
-// Extremely robust env loading
-try {
-  const envPath = path.resolve(__dirname, ".env");
-  if (fs.existsSync(envPath)) {
-    const result = dotenv.config({ path: envPath });
-    if (result.error) {
-      console.error("❌ Dotenv Error:", result.error);
-    } else {
-      console.log("✅ .env loaded successfully from", envPath);
-    }
-  } else {
-    // Fallback to root just in case
-    const rootEnv = path.resolve(process.cwd(), ".env");
-    if (fs.existsSync(rootEnv)) {
-      dotenv.config({ path: rootEnv });
-      console.log("✅ .env loaded from root");
-    } else {
-      console.warn("⚠️ .env file not found");
-    }
-  }
-} catch (e: any) {
-  console.error("❌ Fatal Env Load Error:", e.message);
-}
+// // Extremely robust env loading
+// try {
+//   const envPath = path.resolve(__dirname, ".env");
+//   if (fs.existsSync(envPath)) {
+//     const result = dotenv.config({ path: envPath });
+//     if (result.error) {
+//       console.error("❌ Dotenv Error:", result.error);
+//     } else {
+//       console.log("✅ .env loaded successfully from", envPath);
+//     }
+//   } else {
+//     // Fallback to root just in case
+//     const rootEnv = path.resolve(process.cwd(), ".env");
+//     if (fs.existsSync(rootEnv)) {
+//       dotenv.config({ path: rootEnv });
+//       console.log("✅ .env loaded from root");
+//     } else {
+//       console.warn("⚠️ .env file not found");
+//     }
+//   }
+// } catch (e: any) {
+//   console.error("❌ Fatal Env Load Error:", e.message);
+// }
 
 import express from "express";
 //import { createServer as createViteServer } from "vite";

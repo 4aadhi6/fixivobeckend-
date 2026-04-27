@@ -342,7 +342,27 @@ app.options("*", cors());
 
   /* ================= BOOKING ================= */
 
+  // app.post("/api/bookings/create", async (req, res) => {
+  //   const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
+  //   const ref = await firestore.collection("bookings").add({
+  //     ...req.body,
+  //     otpCode: otp,
+  //     status: "pending",
+  //     paymentStatus: "pending",
+  //     createdAt: admin.firestore.Timestamp.now(),
+  //   });
+
+  //   res.json({ _id: ref.id, id: ref.id, otpCode: otp });
+  // });
   app.post("/api/bookings/create", async (req, res) => {
+  try {
+    console.log("📦 Booking request:", req.body);
+
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({ error: "Empty request body" });
+    }
+
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
     const ref = await firestore.collection("bookings").add({
@@ -354,7 +374,12 @@ app.options("*", cors());
     });
 
     res.json({ _id: ref.id, id: ref.id, otpCode: otp });
-  });
+
+  } catch (error: any) {
+    console.error("❌ Booking Create Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
   /* ================= PAYMENT ================= */
 

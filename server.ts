@@ -32,7 +32,7 @@ try {
 }
 
 import express from "express";
-import { createServer as createViteServer } from "vite";
+//import { createServer as createViteServer } from "vite";
 import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -716,31 +716,31 @@ async function startServer() {
   });
 
   /* ================= VITE ================= */
-  const frontendPath = path.resolve(__dirname, "../frontend");
+  // const frontendPath = path.resolve(__dirname, "../frontend");
 
-  if (process.env.NODE_ENV !== "production") {
-    console.log(
-      `🛠️ Starting server in DEVELOPMENT mode with Vite middleware (root: ${frontendPath})`,
-    );
-    const vite = await createViteServer({
-      root: frontendPath,
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    console.log(
-      `📦 Starting server in PRODUCTION mode serving from ${frontendPath}/dist/`,
-    );
-    const dist = path.join(frontendPath, "dist");
-    if (!fs.existsSync(dist)) {
-      console.warn(
-        "⚠️ WARNING: 'dist' directory not found! Ensure 'npm run build' was executed.",
-      );
-    }
-    app.use(express.static(dist));
-    app.get("*", (_, res) => res.sendFile(path.join(dist, "index.html")));
-  }
+  // if (process.env.NODE_ENV !== "production") {
+  //   console.log(
+  //     `🛠️ Starting server in DEVELOPMENT mode with Vite middleware (root: ${frontendPath})`,
+  //   );
+  //   const vite = await createViteServer({
+  //     root: frontendPath,
+  //     server: { middlewareMode: true },
+  //     appType: "spa",
+  //   });
+  //   app.use(vite.middlewares);
+  // } else {
+  //   console.log(
+  //     `📦 Starting server in PRODUCTION mode serving from ${frontendPath}/dist/`,
+  //   );
+  //   const dist = path.join(frontendPath, "dist");
+  //   if (!fs.existsSync(dist)) {
+  //     console.warn(
+  //       "⚠️ WARNING: 'dist' directory not found! Ensure 'npm run build' was executed.",
+  //     );
+  //   }
+  //   app.use(express.static(dist));
+  //   app.get("*", (_, res) => res.sendFile(path.join(dist, "index.html")));
+  // }
 
   httpServer.listen(3000, () => {
     console.log("🚀 Server running on :localhost000");

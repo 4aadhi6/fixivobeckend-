@@ -152,7 +152,20 @@ async function startServer() {
     cors: { origin: "*" },
   });
 
-  app.use(cors());
+  // app.use(cors());
+  app.use(
+  cors({
+    origin: [
+      "https://fixivo.vercel.app",
+      "http://localhost:5173"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+  })
+);
+
+// VERY IMPORTANT (preflight fix)
+app.options("*", cors());
   app.use(express.json());
 
   /* ================= SOCKET ================= */

@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Application user profile",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "worker", "admin"] },
+        "addresses": { 
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "address": { "type": "string" },
+              "lat": { "type": "number" },
+              "lng": { "type": "number" }
+            }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "role"]
+    },
+    "Worker": {
+      "title": "Worker",
+      "description": "Service provider profile",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "experience": { "type": "number" },
+        "verified": { "type": "boolean" },
+        "availability": { "type": "boolean" },
+        "rating": { "type": "number" },
+        "jobsCompleted": { "type": "number" },
+        "leaderboardScore": { "type": "number" },
+        "documents": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "Service booking record",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "workerId": { "type": "string" },
+        "serviceType": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "assigned", "in-progress", "completed", "cancelled"] },
+        "type": { "type": "string", "enum": ["pre-book", "emergency"] },
+        "date": { "type": "string", "format": "date-time" },
+        "address": { "type": "object" },
+        "otpCode": { "type": "string" },
+        "paymentStatus": { "type": "string", "enum": ["pending", "paid"] },
+        "advancePaid": { "type": "boolean" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/workers/{uid}": {
+      "schema": "Worker",
+      "description": "Worker profiles"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Service bookings"
+    }
+  }
+}

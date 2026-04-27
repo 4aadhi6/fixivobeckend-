@@ -1,0 +1,136 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny Catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ===============================================================
+    // GLOBAL HELPERS
+    // ===============================================================
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    
+    // Admin check: Hardcoded bootstrap admin + database role lookup
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == "adithyanr350@gmail.com" || 
+        request.auth.token.email == "admin@fixivo.com" ||
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+    
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ===============================================================
+    // DOMAIN VALIDATORS (The Blueprints)
+    // ===============================================================
+    
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+             data.uid is string && data.uid.size() <= 128 &&
+             data.email is string && data.email.size() <= 256 &&
+             data.role in ['user', 'worker', 'admin'] &&
+             (data.get('name', '') is string && data.get('name', '').size() <= 100);
+    }
+
+    function isValidWorker(data) {
+      return (data.get('uid', '') is string) &&
+             (data.get('skills', []).size() <= 20) &&
+             (data.get('rating', 0) is number);
+    }
+
+    function isValidBooking(data) {
+      return data.keys().hasAll(['userId', 'serviceType', 'status', 'type', 'paymentStatus']) &&
+             data.userId is string &&
+             data.serviceType is string && data.serviceType.size() <= 100 &&
+             data.status in ['pending', 'confirmed', 'assigned', 'in-progress', 'completed', 'cancelled'] &&
+             data.type in ['pre-book', 'emergency'] &&
+             data.paymentStatus in ['pending', 'paid'];
+    }
+
+    // ===============================================================
+    // PRODUCTION RULES (The Fortress)
+    // ===============================================================
+
+    match /users/{uid} {
+      allow read: if isSignedIn(); // Allow all signed in users to read user profiles (needed for display names)
+      
+      // Mandatory Verification for creating official profiles
+      allow create: if isOwner(uid) && isValidUser(incoming());
+      
+      allow update: if (isOwner(uid) || isAdmin()) && 
+        isValidUser(incoming()) &&
+        (incoming().role == existing().role || isAdmin()) &&
+        incoming().uid == existing().uid &&
+        incoming().email == existing().email;
+    }
+
+    match /workers/{uid} {
+      allow read: if isSignedIn();
+      
+      allow create: if isOwner(uid) && isValidWorker(incoming());
+      
+      allow update: if (isAdmin() || isOwner(uid)) && 
+        isValidWorker(incoming());
+    }
+
+    match /bookings/{bookingId} {
+      // Secure List Queries
+      allow list: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.workerId == request.auth.uid || 
+        isAdmin() ||
+        (resource.data.status == 'confirmed' && (resource.data.workerId == null || resource.data.workerId == ""))
+      );
+      
+      allow get: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.workerId == request.auth.uid || 
+        isAdmin() ||
+        (resource.data.status == 'confirmed')
+      );
+
+      allow create: if isSignedIn() && 
+        // We allow some flexibility in fields but require core ones
+        incoming().userId == request.auth.uid;
+      
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        // User update
+        (isOwner(existing().userId) && (incoming().status == existing().status || incoming().status == 'cancelled')) ||
+        // Worker acceptance (when no workerId exists)
+        (!existing().keys().hasAny(['workerId']) || existing().workerId == "" || existing().workerId == null) ||
+        // Worker status update
+        (request.auth.uid == existing().workerId)
+      );
+
+      allow delete: if isAdmin();
+    }
+    
+    // Transactions logging
+    match /transactions/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    // Reward History
+    match /reward_history/{id} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.workerId == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

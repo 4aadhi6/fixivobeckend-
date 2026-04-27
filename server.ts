@@ -65,9 +65,22 @@ let firestore!: admin.firestore.Firestore;
 
 try {
   if (!admin.apps.length) {
-    const keyPath = path.resolve(__dirname, "firebase-key.json");
-    console.log("🔑 Looking for Firebase key at:", keyPath);
-    const serviceAccount = JSON.parse(fs.readFileSync(keyPath, "utf-8"));
+    // const keyPath = path.resolve(__dirname, "firebase-key.json");
+    // console.log("🔑 Looking for Firebase key at:", keyPath);
+    // const serviceAccount = JSON.parse(fs.readFileSync(keyPath, "utf-8"));
+    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+  throw new Error("FIREBASE_SERVICE_ACCOUNT missing");
+}
+
+const serviceAccount = JSON.parse(
+  process.env.FIREBASE_SERVICE_ACCOUNT
+);
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+console.log("🔥 Firebase initialized from ENV");
 
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),

@@ -460,7 +460,7 @@ app.options("*", cors());
 
   //   res.json({ _id: ref.id, id: ref.id, otpCode: otp });
   // });
-  app.post("/api/bookings/create", async (req, res) => {
+  app.post("/api/bookings/create", verifyFirebaseToken, async (req, res) => {
   try {
     console.log("📦 Booking request:", req.body);
 

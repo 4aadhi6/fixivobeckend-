@@ -188,6 +188,29 @@ try {
   process.exit(1);
 }
 /* ================= FIREBASE ADMIN END ================= */
+// ================= AUTH MIDDLEWARE =================
+
+async function verifyFirebaseToken(req: any, res: any, next: any) {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    const token = authHeader.split("Bearer ")[1];
+
+    const decoded = await admin.auth().verifyIdToken(token);
+
+    // attach user to request
+    req.user = decoded;
+
+    next();
+  } catch (error: any) {
+    console.error("❌ Token verification failed:", error.message);
+    return res.status(401).json({ error: "Invalid token" });
+  }
+}
 /* ================= RAZORPAY ================= */
 
 let razorpay: Razorpay | null = null;

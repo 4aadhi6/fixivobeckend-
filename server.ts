@@ -211,6 +211,7 @@ async function verifyFirebaseToken(req: any, res: any, next: any) {
     return res.status(401).json({ error: "Invalid token" });
   }
 }
+const firebaseId = req.user.uid;
 /* ================= RAZORPAY ================= */
 
 let razorpay: Razorpay | null = null;

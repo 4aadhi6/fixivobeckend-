@@ -484,7 +484,7 @@ app.options("*", cors());
 
   //   res.json({ _id: ref.id, id: ref.id, otpCode: otp });
   // });
-  app.post("/api/bookings/create", verifyFirebaseToken, async (req, res) => {
+ /* app.post("/api/bookings/create", verifyFirebaseToken, async (req, res) => {
   try {
     console.log("📦 Booking request:", req.body);
 
@@ -508,10 +508,57 @@ app.options("*", cors());
     console.error("❌ Booking Create Error:", error);
     res.status(500).json({ error: error.message });
   }
-});
+});*/
 
   /* ================= PAYMENT ================= */
+app.post("/api/bookings/create", verifyFirebaseToken, async (req: any, res) => {
+  try {
+    console.log("📦 Booking request:", req.body);
 
+    // 🚨 Check empty body
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({ error: "Empty request body" });
+    }
+
+    // 🔐 Get verified Firebase user ID
+    const userId = req.user.uid;
+
+    // 🧹 Remove any fake user fields from frontend
+    delete req.body.firebaseId;
+    delete req.body.userId;
+
+    // 🔢 Generate OTP
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
+    // 💾 Save booking
+    const ref = await firestore.collection("bookings").add({
+      ...req.body,
+      userId, // ✅ trusted user ID from token
+      otpCode: otp,
+      status: "pending",
+      paymentStatus: "pending",
+      createdAt: admin.firestore.Timestamp.now(),
+    });
+
+    console.log("✅ Booking created:", ref.id);
+
+    // 📤 Response
+    res.json({
+      success: true,
+      _id: ref.id,
+      id: ref.id,
+      otpCode: otp,
+    });
+
+  } catch (error: any) {
+    console.error("❌ Booking Create Error:", error);
+
+    res.status(500).json({
+      success: false,
+      error: error.message || "Internal Server Error",
+    });
+  }
+});
   app.get("/api/payments/config", (req, res) => {
     const rzp = getRazorpay();
     res.json({ configured: !!rzp });

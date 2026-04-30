@@ -154,7 +154,7 @@ try {
 //   // 🚨 STOP SERVER (important)
 //   process.exit(1);
 // }
-import admin from "firebase-admin";
+//import admin from "firebase-admin";
 
 // ================= FIREBASE INIT =================
 
@@ -211,7 +211,7 @@ async function verifyFirebaseToken(req: any, res: any, next: any) {
     return res.status(401).json({ error: "Invalid token" });
   }
 }
-const firebaseId = req.user.uid;
+//const firebaseId = req.user.uid;
 /* ================= RAZORPAY ================= */
 
 let razorpay: Razorpay | null = null;
